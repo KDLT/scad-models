@@ -1,0 +1,78 @@
+use <MCAD/boxes.scad>
+
+_baseHeight = 0.4; // 2 layers high only
+_baseLength = 151.6; // kulang pa ng 1.5 ang 150
+_baseWidth = 101.4; // kulang pa ng 0.32 ang 101
+_borderThickness = 6.6;
+_fenceThickness = 3; // [0.8,3]
+_fenceHeight = 5; // 9 for the final height
+_fenceRadius=5;
+_bottomRadius=3;
+
+brushDiameter=4.65;
+jarDiameter=29.4; //[29.1, 29.4]
+vialDiameter=11.5; //[11.2, 11.5]
+prongToolDiameter=8;
+
+$fn=40;
+
+module easelBase(x=_baseWidth, y=_baseLength, hb=_baseHeight, hf=_fenceHeight, tb=_borderThickness, tf=_fenceThickness, rf=_fenceRadius, rb=_bottomRadius, db=brushDiameter, dj=jarDiameter, dv=vialDiameter, dp=prongToolDiameter) {
+    
+    module bottomPlate(botX=x+2*tb, botY=y+2*tb, botZ=hb, r=rb) {
+        roundedBox(size=[botX, botY, botZ], radius=r, sidesonly=true);
+    }; //bottomPlate();
+
+    module fence(t=tf, h=hf, r=rf) {
+        difference() {
+            roundedBox(size=[x, y, h], radius=r, sidesonly=true);
+            roundedBox(size=[x-2*t, y-2*t, h], radius=r-t, sidesonly=true);
+        }
+    }; //fence();
+
+    module brushSlot(d=db, t=tf) { rotate([90,0,0]) cylinder(d=d, h=t); };
+    //brushSlot();
+    
+    module prongSlot(d=dp, t=tf) { rotate([90,0,0]) cylinder(d=d, h=t); };
+    //prongSlot();
+
+    module vialHole(d=dv, h=hb) { cylinder(d=d, h=h); };
+    //vialSlot
+
+    module jarHole(d=dj, h=hb) { cylinder(d=d, h=h); };
+    //jarSlot();
+
+    module holder(d=dp, h=7, t=2, o=1) {
+    // t is thickness of the holder, o is offset para kumapit ang ikakabit
+        rotate([0,0,0]) {
+            difference() {
+                union() {
+                    cube([d+t, d+t, h], center=true);
+                    cylinder(d=d+t, h=h, center=true);
+                };
+                cylinder(d=d, h=h, center=true);
+                translate([-d-t, o, -h/2]) cube([(d+2*t), (d+t)/2, h]);
+            }
+        }
+    };
+    holder(d=dp, t=3); // prong holder
+    //holder(d=db); // brush holder
+    //holder(d=dv); // vial holder
+
+
+    module brushHolder() {  };
+    module vialHolder() {  };
+
+    /* difference() { */
+    /*     bottomPlate(); */
+    /*     translate([-x/4,y/2-10,-hb/2]) vialHole(); */
+    /*     translate([-x/4,y/4, -hb/2]) jarHole(); */
+    /* }; */
+    /* difference() { */
+    /*     translate([0, 0, hf/2]) fence(); */
+    /*     translate([x/2-10, y/2, hf]) brushSlot(); // 20 is the cutout's offset from the edge */
+    /*     translate([x/2-30, y/2, hf]) prongSlot(); // same 20 here pero galing sa kaliwa */
+    /* }; */
+
+};
+
+easelBase();
