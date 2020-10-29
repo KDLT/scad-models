@@ -12,8 +12,8 @@ _fenceRadius=5;
 _bottomRadius=3;
 
 brushDiameter=4.65;
-jarDiameter=29.4; //[29.1, 29.4]
-vialDiameter=11.5; //[11.2, 11.5]
+jarDiameter=29.2; //[29.1, 29.4, 29.2]
+vialDiameter=11.25; //[11.2, 11.5, 11.25]
 prongToolDiameter=8;
 
 $fn=40;
@@ -38,57 +38,57 @@ module easelBase(x=_baseWidth, y=_baseLength, hb=_baseHeight, hf=_fenceHeight, h
             fence(t=1000);
         }
     };
-    flangeExtrude();
 
     module slot(d=db, t=tf) { rotate([90, 0, 0]) cylinder(d=d, h=t); };
-    module hole(d=dv, h=hb) { cylinder(d=d, h=h); };
-    
-    holderHeight=7;
-    module holder(d=dp, h=holderHeight, t=2, o=1) {
-    // t is thickness of the holder
-    // o is offset of cutting solid from center para hindi semicircle ang kalabasan
-        translate([0, 0, (d+2*t)/2]) rotate([90,0,0]) {
-            // translate rotate kasi ayaw kong centered ang kalabasan
+
+    module ring(d=dv, h=3.6, t=2) {
+    // t is thickness of cylinder
+    // h is the height of cylinder
+        difference() {
+            cylinder(d=d+t, h=h);
+            cylinder(d=d, h=h);
+        };
+    };
+
+    _holderHeight=7;
+    _beamThickness=2;
+    _slotOffset=1;
+
+    _xVial=-x/2+15;
+    _xProng=x/2-30;
+    _xBrush=x/2-15;
+
+    module holderBeam(h=_holderHeight, t=_beamThickness, o=_slotOffset) { 
+        module beam(x=x, t=t, h=h) {
+            translate([0,0,h/2]) cube([x,t,h], center=true);
+        };
+        //beam();
+        module slottedBeam(op=o, ob=o, ov=o) {
             difference() {
-                union() {
-                    cube([d+2*t, d+2*t, h], center=true);
-                    cylinder(d=d+t, h=h, center=true);
-                };
-                cylinder(d=d, h=h, center=true);
-                translate([-(d+2*t), o, -h/2])
-                    cube([2*(d+2*t), (d+2*t)/2, h]);
-            }
-        }
+                beam();
+                translate([_xProng, t/2, h-op]) rotate([90,0,0]) cylinder(d=dp, h=t); // prong
+                translate([_xBrush, t/2, h-ob]) rotate([90,0,0]) cylinder(d=db, h=t); // brush
+                translate([_xVial, t/2, h-ov]) rotate([90,0,0]) cylinder(d=dv, h=t); // vial
+            };
+        };
+        slottedBeam();
+        translate([0,-25,0]) slottedBeam();
     };
 
     // hole placement
-    locVialHole=[-x/2+15, y/2-15, 0];
-    locJarHole=[-x/2+50, y/2-15-(dj-dv)/2, 0];
-    //locJarHole=[0, y/4, 0];
+    locVial=[_xVial, y/2-15, 0];
+    locJar=[-x/2+45, y/2-15-(dj-dv)/2, 0];
 
-    // holder placement
-    locProng=[x/2-30, y/2, 0];
-    locBrush=[x/2-15, y/2, 0]; // -10 is the brush slot's offset from the edge of fence
+    bottomPlate();
+    flangeExtrude();
+    translate([0, 0, hf/2]) fence();
 
+    translate([0,25,0]) holderBeam(h=10);
 
-    translate(locVialHole+[0,-dj+holderHeight,0]) holder(d=dv, t=3, o=2); // vial holder
-    translate(locProng + [0,-y/4,0]) holder(d=dp, t=2); // prong holder
-    translate(locBrush + [0,-y/4,0]) holder(d=db, t=1); // brush holder
-
-    //for now these are through holes
-    difference() {
-        bottomPlate();
-        translate(locVialHole + [0, 0, -hb/2])
-            hole(d=dv, h=hb); // vial
-        translate(locJarHole + [0, 0, -hb/2])
-            hole(d=dj, h=hb); // jar
-    };
-    difference() {
-        translate([0, 0, hf/2]) fence();
-        //translate([x/2-10, y/2, hf]) slot(d=db); // -10 is the brush slot's offset from the edge of fence
-        translate(locBrush + [0,0,hf]) slot(d=db);
-        translate(locProng +[0,0,hf]) slot(d=dp); // -30 naman para sa prong slot
-    };
+    translate(locVial + [0, 0, -hb/2])
+        ring(d=dv, t=3); // vial
+    translate(locJar + [0, 0, -hb/2])
+        ring(d=dj, t=5, h=7); // jar
 
 };
 
